@@ -7,7 +7,11 @@
 package cliente
 
 import (
+	context "context"
 	proto "github.com/golang/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -279,4 +283,118 @@ func file_uploader_proto_init() {
 	file_uploader_proto_rawDesc = nil
 	file_uploader_proto_goTypes = nil
 	file_uploader_proto_depIdxs = nil
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConnInterface
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion6
+
+// GuploadServiceClient is the client API for GuploadService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type GuploadServiceClient interface {
+	Upload(ctx context.Context, opts ...grpc.CallOption) (GuploadService_UploadClient, error)
+}
+
+type guploadServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewGuploadServiceClient(cc grpc.ClientConnInterface) GuploadServiceClient {
+	return &guploadServiceClient{cc}
+}
+
+func (c *guploadServiceClient) Upload(ctx context.Context, opts ...grpc.CallOption) (GuploadService_UploadClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_GuploadService_serviceDesc.Streams[0], "/cliente.GuploadService/Upload", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &guploadServiceUploadClient{stream}
+	return x, nil
+}
+
+type GuploadService_UploadClient interface {
+	Send(*Chunk) error
+	CloseAndRecv() (*UploadStatus, error)
+	grpc.ClientStream
+}
+
+type guploadServiceUploadClient struct {
+	grpc.ClientStream
+}
+
+func (x *guploadServiceUploadClient) Send(m *Chunk) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *guploadServiceUploadClient) CloseAndRecv() (*UploadStatus, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UploadStatus)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// GuploadServiceServer is the server API for GuploadService service.
+type GuploadServiceServer interface {
+	Upload(GuploadService_UploadServer) error
+}
+
+// UnimplementedGuploadServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedGuploadServiceServer struct {
+}
+
+func (*UnimplementedGuploadServiceServer) Upload(GuploadService_UploadServer) error {
+	return status.Errorf(codes.Unimplemented, "method Upload not implemented")
+}
+
+func RegisterGuploadServiceServer(s *grpc.Server, srv GuploadServiceServer) {
+	s.RegisterService(&_GuploadService_serviceDesc, srv)
+}
+
+func _GuploadService_Upload_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GuploadServiceServer).Upload(&guploadServiceUploadServer{stream})
+}
+
+type GuploadService_UploadServer interface {
+	SendAndClose(*UploadStatus) error
+	Recv() (*Chunk, error)
+	grpc.ServerStream
+}
+
+type guploadServiceUploadServer struct {
+	grpc.ServerStream
+}
+
+func (x *guploadServiceUploadServer) SendAndClose(m *UploadStatus) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *guploadServiceUploadServer) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+var _GuploadService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "cliente.GuploadService",
+	HandlerType: (*GuploadServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Upload",
+			Handler:       _GuploadService_Upload_Handler,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "uploader.proto",
 }
