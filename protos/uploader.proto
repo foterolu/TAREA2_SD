@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package cliente;
 
-service GuploadService {
-        rpc Upload(stream Chunk) returns (UploadStatus) {}
+service ChunksUpload {
+        rpc UploadChunk(stream Chunk) returns (UploadStatus) {}
 }
 
 message Chunk {

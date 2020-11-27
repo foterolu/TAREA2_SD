@@ -13,45 +13,45 @@ import (
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion7
 
-// GuploadServiceClient is the client API for GuploadService service.
+// ChunksUploadClient is the client API for ChunksUpload service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GuploadServiceClient interface {
-	Upload(ctx context.Context, opts ...grpc.CallOption) (GuploadService_UploadClient, error)
+type ChunksUploadClient interface {
+	UploadChunk(ctx context.Context, opts ...grpc.CallOption) (ChunksUpload_UploadChunkClient, error)
 }
 
-type guploadServiceClient struct {
+type chunksUploadClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGuploadServiceClient(cc grpc.ClientConnInterface) GuploadServiceClient {
-	return &guploadServiceClient{cc}
+func NewChunksUploadClient(cc grpc.ClientConnInterface) ChunksUploadClient {
+	return &chunksUploadClient{cc}
 }
 
-func (c *guploadServiceClient) Upload(ctx context.Context, opts ...grpc.CallOption) (GuploadService_UploadClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_GuploadService_serviceDesc.Streams[0], "/cliente.GuploadService/Upload", opts...)
+func (c *chunksUploadClient) UploadChunk(ctx context.Context, opts ...grpc.CallOption) (ChunksUpload_UploadChunkClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ChunksUpload_serviceDesc.Streams[0], "/cliente.ChunksUpload/UploadChunk", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &guploadServiceUploadClient{stream}
+	x := &chunksUploadUploadChunkClient{stream}
 	return x, nil
 }
 
-type GuploadService_UploadClient interface {
+type ChunksUpload_UploadChunkClient interface {
 	Send(*Chunk) error
 	CloseAndRecv() (*UploadStatus, error)
 	grpc.ClientStream
 }
 
-type guploadServiceUploadClient struct {
+type chunksUploadUploadChunkClient struct {
 	grpc.ClientStream
 }
 
-func (x *guploadServiceUploadClient) Send(m *Chunk) error {
+func (x *chunksUploadUploadChunkClient) Send(m *Chunk) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *guploadServiceUploadClient) CloseAndRecv() (*UploadStatus, error) {
+func (x *chunksUploadUploadChunkClient) CloseAndRecv() (*UploadStatus, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -62,53 +62,53 @@ func (x *guploadServiceUploadClient) CloseAndRecv() (*UploadStatus, error) {
 	return m, nil
 }
 
-// GuploadServiceServer is the server API for GuploadService service.
-// All implementations must embed UnimplementedGuploadServiceServer
+// ChunksUploadServer is the server API for ChunksUpload service.
+// All implementations must embed UnimplementedChunksUploadServer
 // for forward compatibility
-type GuploadServiceServer interface {
-	Upload(GuploadService_UploadServer) error
-	mustEmbedUnimplementedGuploadServiceServer()
+type ChunksUploadServer interface {
+	UploadChunk(ChunksUpload_UploadChunkServer) error
+	mustEmbedUnimplementedChunksUploadServer()
 }
 
-// UnimplementedGuploadServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedGuploadServiceServer struct {
+// UnimplementedChunksUploadServer must be embedded to have forward compatible implementations.
+type UnimplementedChunksUploadServer struct {
 }
 
-func (UnimplementedGuploadServiceServer) Upload(GuploadService_UploadServer) error {
-	return status.Errorf(codes.Unimplemented, "method Upload not implemented")
+func (UnimplementedChunksUploadServer) UploadChunk(ChunksUpload_UploadChunkServer) error {
+	return status.Errorf(codes.Unimplemented, "method UploadChunk not implemented")
 }
-func (UnimplementedGuploadServiceServer) mustEmbedUnimplementedGuploadServiceServer() {}
+func (UnimplementedChunksUploadServer) mustEmbedUnimplementedChunksUploadServer() {}
 
-// UnsafeGuploadServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GuploadServiceServer will
+// UnsafeChunksUploadServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ChunksUploadServer will
 // result in compilation errors.
-type UnsafeGuploadServiceServer interface {
-	mustEmbedUnimplementedGuploadServiceServer()
+type UnsafeChunksUploadServer interface {
+	mustEmbedUnimplementedChunksUploadServer()
 }
 
-func RegisterGuploadServiceServer(s *grpc.Server, srv GuploadServiceServer) {
-	s.RegisterService(&_GuploadService_serviceDesc, srv)
+func RegisterChunksUploadServer(s *grpc.Server, srv ChunksUploadServer) {
+	s.RegisterService(&_ChunksUpload_serviceDesc, srv)
 }
 
-func _GuploadService_Upload_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(GuploadServiceServer).Upload(&guploadServiceUploadServer{stream})
+func _ChunksUpload_UploadChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ChunksUploadServer).UploadChunk(&chunksUploadUploadChunkServer{stream})
 }
 
-type GuploadService_UploadServer interface {
+type ChunksUpload_UploadChunkServer interface {
 	SendAndClose(*UploadStatus) error
 	Recv() (*Chunk, error)
 	grpc.ServerStream
 }
 
-type guploadServiceUploadServer struct {
+type chunksUploadUploadChunkServer struct {
 	grpc.ServerStream
 }
 
-func (x *guploadServiceUploadServer) SendAndClose(m *UploadStatus) error {
+func (x *chunksUploadUploadChunkServer) SendAndClose(m *UploadStatus) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *guploadServiceUploadServer) Recv() (*Chunk, error) {
+func (x *chunksUploadUploadChunkServer) Recv() (*Chunk, error) {
 	m := new(Chunk)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -116,14 +116,14 @@ func (x *guploadServiceUploadServer) Recv() (*Chunk, error) {
 	return m, nil
 }
 
-var _GuploadService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "cliente.GuploadService",
-	HandlerType: (*GuploadServiceServer)(nil),
+var _ChunksUpload_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "cliente.ChunksUpload",
+	HandlerType: (*ChunksUploadServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Upload",
-			Handler:       _GuploadService_Upload_Handler,
+			StreamName:    "UploadChunk",
+			Handler:       _ChunksUpload_UploadChunk_Handler,
 			ClientStreams: true,
 		},
 	},
