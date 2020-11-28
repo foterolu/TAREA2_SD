@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net"
 
@@ -31,9 +30,10 @@ func main() {
 	defer grpcServer.Stop()
 }
 
-func (s *DataNodeServer) UploadChunk(ctx context.Context, Chunk *protos.Chunk) (*protos.UploadStatus, error) {
+func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServer) (err error) {
+	res, err := stream.Recv()
 
-	fmt.Printf("Status: %v", Chunk.Content)
-	return &protos.UploadStatus{}, nil
+	fmt.Printf("Status: %v", res.Name)
+	return
 
 }

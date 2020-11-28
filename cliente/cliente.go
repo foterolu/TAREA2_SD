@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	protos "../protos"
 	"google.golang.org/grpc"
 )
 
@@ -26,7 +27,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	//client := protos.NewChunksUploadClient(conn)
+	client := protos.NewChunksUploadClient(conn)
 
 	fileToBeChunked := "./Orgullo_y_prejuicio-Jane_Austen.pdf" // change here!
 
@@ -50,17 +51,27 @@ func main() {
 	totalPartsNum := uint64(math.Ceil(float64(fileSize) / float64(fileChunk)))
 
 	fmt.Printf("Splitting to %d pieces.\n", totalPartsNum)
+	stream, err := client.UploadChunk(ctx)
+	if err != nil {
+
+		return
+	}
+	defer stream.CloseSend()
 
 	for i := uint64(0); i < totalPartsNum; i++ {
 
 		partSize := int(math.Min(fileChunk, float64(fileSize-int64(i*fileChunk))))
 		partBuffer := make([]byte, partSize)
 
-		file.Read(partBuffer)
-
 		// write to disk
 		fileName := "Orgullo_y_prejuicio-Jane_Austen_" + strconv.FormatUint(i, 10)
 		_, err := os.Create(fileName)
+
+		file.Read(partBuffer)
+		stream.Send(&protos.Chunk{
+			Content: partBuffer,
+			Name:    fileName,
+		})
 
 		if err != nil {
 			fmt.Println(err)
@@ -68,7 +79,6 @@ func main() {
 		}
 
 		// write/save buffer to disk/send buffer
-		ChunksUpload(ctx, partBuffer)
 
 		ioutil.WriteFile(fileName, partBuffer, os.ModeAppend)
 

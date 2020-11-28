@@ -8,6 +8,7 @@ service ChunksUpload {
 
 message Chunk {
         bytes Content = 1;
+        string Name = 2;
 }
 
 enum UploadStatusCode {
