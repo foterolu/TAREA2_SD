@@ -31,9 +31,10 @@ func main() {
 }
 
 func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServer) (err error) {
-	res, err := stream.Recv()
+	for {
+		res, _ := stream.Recv()
 
-	fmt.Printf("Status: %v", res.Name)
-	return
+		fmt.Printf("Status: %v\n", res.Name)
+	}
 
 }
