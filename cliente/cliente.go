@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -18,7 +18,12 @@ const (
 	port = ":50051"
 )
 
+var (
+	libro = flag.String("libro", "", "nombre del libro")
+)
+
 func main() {
+	flag.Parse()
 
 	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
 	if err != nil {
@@ -29,8 +34,9 @@ func main() {
 	defer cancel()
 
 	client := protos.NewChunksUploadClient(conn)
+	fmt.Printf("nombre del libro %v\n", *libro)
 
-	fileToBeChunked := "./Orgullo_y_prejuicio-Jane_Austen.pdf" // change here!
+	fileToBeChunked := "./" + *libro + ".pdf" // change here!
 
 	file, err := os.Open(fileToBeChunked)
 
@@ -68,8 +74,8 @@ func main() {
 		partBuffer := make([]byte, partSize)
 
 		// write to disk
-		fileName := "Orgullo_y_prejuicio-Jane_Austen_" + strconv.FormatUint(i, 10)
-		_, err := os.Create(fileName)
+		fileName := *libro + "_" + strconv.FormatUint(i, 10)
+		//_, err := os.Create(fileName)
 
 		file.Read(partBuffer)
 		stream.Send(&protos.Chunk{
@@ -84,7 +90,7 @@ func main() {
 
 		// write/save buffer to disk/send buffer
 
-		ioutil.WriteFile(fileName, partBuffer, os.ModeAppend)
+		//ioutil.WriteFile(fileName, partBuffer, os.ModeAppend)
 
 		fmt.Println("Split to : ", fileName)
 	}
