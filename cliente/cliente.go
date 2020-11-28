@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -38,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	defer file.Close()
+	defer file.Close() //pa que termine despues de ejecutarse todo
 
 	fileInfo, _ := file.Stat()
 
@@ -51,12 +52,15 @@ func main() {
 	totalPartsNum := uint64(math.Ceil(float64(fileSize) / float64(fileChunk)))
 
 	fmt.Printf("Splitting to %d pieces.\n", totalPartsNum)
+	//ctx := context.Background()
+
 	stream, err := client.UploadChunk(ctx)
 	if err != nil {
 
 		return
 	}
 	defer stream.CloseSend()
+	//fmt.Printf("Total part: %v\n", totalPartsNum)
 
 	for i := uint64(0); i < totalPartsNum; i++ {
 
@@ -85,8 +89,19 @@ func main() {
 		fmt.Println("Split to : ", fileName)
 	}
 
+	status, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("search error: %v", err)
+		return
+	}
+
+	if status.Code != protos.UploadStatusCode_Ok {
+		log.Fatalf("search error: %v", err)
+		return
+	}
+
 	// just for fun, let's recombine back the chunked files in a new file
 
-	file.Close()
+	//file.Close()
 
 }
