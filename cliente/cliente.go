@@ -25,9 +25,10 @@ var (
 func main() {
 	flag.Parse()
 
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 	if err != nil {
+		fmt.Printf("ERRROOOOOOR\n")
 		panic(err)
 	}
 	defer conn.Close()

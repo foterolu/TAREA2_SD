@@ -84,7 +84,7 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 		s.name = append(s.name, res.Name)
 		//fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
 
-		ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
+		//ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 	}
 	fmt.Printf("HE LLEGADO")
 	repartir(s.dir, s)
@@ -123,14 +123,14 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 	aceptacion := &protos.Accept{
 		Flag: true}
-	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
+	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(1*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 	if err != nil {
 		aceptacion.Flag = false
 		fmt.Printf("HOLA SOY FALSOOOOOO\n")
 		return aceptacion, err
 	}
-	defer conn.Close()
+	conn.Close()
 
 	return aceptacion, nil
 
@@ -155,39 +155,40 @@ func repartir(dirs []string, s *DataNodeServer) {
 			fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
 			if !aceptacion.Flag {
 				fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
-				remove(dirs, i)
+				dirs = remove(dirs, i)
 				break
 			}
 		}
-		/*
-			for i := int(0); i < len(DataNodeServer.data); i++ {
-				size := len(dirs)
 
-				conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
-				if err != nil {
-					panic(err)
-				}
-				defer conn.Close()
+		for i := int(0); i < len(s.data); i++ {
+			size := len(dirs)
 
-				client := protos.NewChunksUploadClient(conn)
-
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer cancel()
-
-				stream, err := client.UploadChunk(ctx)
-				if err != nil {
-
-					return
-				}
-				defer stream.CloseSend()
-
-				stream.Send(&protos.Chunk{
-					Content: DataNodeServer.data[i],
-					Name:    DataNodeServer.name[i],
-				})
-
+			conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
+			if err != nil {
+				panic(err)
 			}
+			defer conn.Close()
 
+			client := protos.NewChunksUploadClient(conn)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			stream, err := client.UploadChunk(ctx)
+			if err != nil {
+
+				return
+			}
+			defer stream.CloseSend()
+
+			stream.Send(&protos.Chunk{
+				Content: s.data[i],
+				Name:    s.name[i],
+			})
+
+		}
+
+		/*
 			status, err := stream.CloseAndRecv()
 			if err != nil {
 				log.Fatalf("search error: %v", err)
@@ -199,6 +200,5 @@ func repartir(dirs []string, s *DataNodeServer) {
 				return
 			}
 		*/
-
 	}
 }
