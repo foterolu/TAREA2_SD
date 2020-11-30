@@ -16,9 +16,7 @@ message Chunk {
 }
 
 message prop {
-        string node1 = 1;
-        string node2 = 2;
-        string node3 = 3; 
+        string node = 1;
 }
 
 message accept{
