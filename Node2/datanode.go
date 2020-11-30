@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	port = ":50051"
+	port = "localhost:8080"
 )
 
 type DataNodeServer struct {
@@ -36,7 +36,7 @@ func main() {
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	di := []string{"localhost:8080", "asdsa"}
+	di := []string{"localhost:50051", "localhost:8080", "localhost:9090"}
 	s := &DataNodeServer{}
 	s.dir = di
 	protos.RegisterChunksUploadServer(grpcServer, s)
@@ -149,42 +149,48 @@ func repartir(dirs []string, s *DataNodeServer) {
 		}
 
 		for i := int(0); i < len(dirs); i++ {
-			ip.Node = dirs[i]
-			fmt.Printf("IP DOT NODE: %v\n", ip)
-			aceptacion, _ := s.Propuesta(ctx, ip)
-			fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
-			if !aceptacion.Flag {
-				fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
-				dirs = remove(dirs, i)
-				break
+			if dirs[i] != port {
+
+				ip.Node = dirs[i]
+				fmt.Printf("IP DOT NODE: %v\n", ip)
+				aceptacion, _ := s.Propuesta(ctx, ip)
+				fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
+				if !aceptacion.Flag {
+					fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
+					dirs = remove(dirs, i)
+					break
+				}
 			}
 		}
 
 		for i := int(0); i < len(s.data); i++ {
 			size := len(dirs)
+			if dirs[i%size] == port {
+				ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
+			} else {
+				conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
+				if err != nil {
+					panic(err)
+				}
+				defer conn.Close()
 
-			conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
-			if err != nil {
-				panic(err)
+				client := protos.NewChunksUploadClient(conn)
+
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+
+				stream, err := client.SendChunk(ctx)
+				if err != nil {
+
+					return
+				}
+				defer stream.CloseSend()
+
+				stream.Send(&protos.Chunk{
+					Content: s.data[i],
+					Name:    s.name[i],
+				})
 			}
-			defer conn.Close()
-
-			client := protos.NewChunksUploadClient(conn)
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-
-			stream, err := client.SendChunk(ctx)
-			if err != nil {
-
-				return
-			}
-			defer stream.CloseSend()
-
-			stream.Send(&protos.Chunk{
-				Content: s.data[i],
-				Name:    s.name[i],
-			})
 
 		}
 
