@@ -25,15 +25,15 @@ var (
 func main() {
 	flag.Parse()
 
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
+
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
 	client := protos.NewChunksUploadClient(conn)
+
 	fmt.Printf("nombre del libro %v\n", *libro)
 
 	fileToBeChunked := "./" + *libro + ".pdf" // change here!
@@ -59,6 +59,9 @@ func main() {
 
 	fmt.Printf("Splitting to %d pieces.\n", totalPartsNum)
 	//ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	stream, err := client.UploadChunk(ctx)
 	if err != nil {

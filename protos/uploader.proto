@@ -4,7 +4,7 @@ package cliente;
 
 service ChunksUpload {
         rpc UploadChunk(stream Chunk) returns (UploadStatus) {}
-        rpc Propuesta(prop) returns (accept){}
+        rpc Propuesta(Prop) returns (Accept){}
         rpc SendChunk(stream Chunk) returns (UploadStatus) {}
         
 }
@@ -15,12 +15,12 @@ message Chunk {
         string Name = 2;
 }
 
-message prop {
-        string node = 1;
+message Prop {
+        string Node = 1;
 }
 
-message accept{
-        bool flag = 1;
+message Accept{
+        bool Flag = 1;
 }
 
 
