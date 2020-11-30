@@ -36,7 +36,7 @@ func main() {
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	di := []string{"localhost:8080", "asdsa"}
+	di := []string{"localhost:8080", "localhost:9090"}
 	s := &DataNodeServer{}
 	s.dir = di
 	protos.RegisterChunksUploadServer(grpcServer, s)
@@ -174,7 +174,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
-			stream, err := client.UploadChunk(ctx)
+			stream, err := client.SendChunk(ctx)
 			if err != nil {
 
 				return
@@ -188,17 +188,6 @@ func repartir(dirs []string, s *DataNodeServer) {
 
 		}
 
-		/*
-			status, err := stream.CloseAndRecv()
-			if err != nil {
-				log.Fatalf("search error: %v", err)
-				return
-			}
-
-			if status.Code != protos.UploadStatusCode_Ok {
-				log.Fatalf("search error: %v", err)
-				return
-			}
-		*/
 	}
+
 }

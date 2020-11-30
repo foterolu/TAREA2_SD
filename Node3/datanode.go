@@ -30,13 +30,13 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", "localhost:8080")
+	listener, err := net.Listen("tcp", "localhost:9090")
 	if err != nil {
 		panic(err)
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	di := []string{"localhost:8080", "asdsa"}
+	di := []string{"localhost:8080", "localhost:8080"}
 	s := &DataNodeServer{}
 	s.dir = di
 	protos.RegisterChunksUploadServer(grpcServer, s)
