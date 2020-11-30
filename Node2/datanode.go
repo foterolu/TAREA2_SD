@@ -18,10 +18,12 @@ const (
 
 type DataNodeServer struct {
 	protos.UnimplementedChunksUploadServer
+	data [][]byte
+	name []string
 }
 
 func main() {
-	listener, err := net.Listen("tcp", "localhost:50051")
+	listener, err := net.Listen("tcp", "localhost:8080")
 	if err != nil {
 		panic(err)
 	}
@@ -54,10 +56,39 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 
 		}
 		fmt.Printf("Status: %v\n", res.Name)
+		s.data = append(s.data, res.Content)
+		fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
 
 		ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 
 	}
+
 	//return err
 
+}
+
+func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (err error) {
+
+	res, err := stream.Recv()
+	if err == io.EOF {
+		err = stream.SendAndClose(&protos.UploadStatus{
+			Message: "Upload received with success",
+			Code:    protos.UploadStatusCode_Ok,
+		})
+
+		if err != nil {
+			log.Fatalf("search error: %v", err)
+			return err
+		}
+		return nil
+
+	}
+	if err != nil {
+		log.Fatalf("search error: %v", err)
+
+	}
+
+	ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
+
+	return err
 }

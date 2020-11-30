@@ -78,6 +78,7 @@ func main() {
 		//_, err := os.Create(fileName)
 
 		file.Read(partBuffer)
+		fmt.Printf("cantidad de bytes: %v\n", len(partBuffer))
 		stream.Send(&protos.Chunk{
 			Content: partBuffer,
 			Name:    fileName,
