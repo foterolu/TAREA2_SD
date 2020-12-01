@@ -86,7 +86,6 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 
 		//ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 	}
-	fmt.Printf("HE LLEGADO")
 	repartir(s.dir, s)
 
 	return
@@ -127,7 +126,7 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 	if err != nil {
 		aceptacion.Flag = false
-		fmt.Printf("HOLA SOY FALSOOOOOO\n")
+
 		return aceptacion, err
 	}
 	conn.Close()
@@ -139,59 +138,78 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 func repartir(dirs []string, s *DataNodeServer) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
+	flag := false
 	ip := &protos.Prop{}
-	for {
+	for { //loop infinito
 
 		if len(dirs) == 0 {
 			fmt.Printf("No hay nodos funcionando, Todo se guara aca ctm lol xd\n")
-			return
+			break
+		} else if len(dirs) == 1 {
+			ip.Node = dirs[0]
+			aceptacion, _ := s.Propuesta(ctx, ip)
+			fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
+			if !aceptacion.Flag {
+				fmt.Printf("Propuesta Rechazada, no Hay nodos disponibles\n")
+				dirs = remove(dirs, 0)
+				return
+			} else {
+				break
+
+			}
+
 		}
 
 		for i := int(0); i < len(dirs); i++ {
 			if dirs[i] != port {
 
 				ip.Node = dirs[i]
-				fmt.Printf("IP DOT NODE: %v\n", ip)
 				aceptacion, _ := s.Propuesta(ctx, ip)
-				fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
+				fmt.Printf("La propuesta es: %v \n", dirs)
 				if !aceptacion.Flag {
 					fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
 					dirs = remove(dirs, i)
 					break
+				} else if aceptacion.Flag && i == len(dirs)-1 {
+					fmt.Printf("Propuesta aceptada: %v \n", dirs)
+					flag = true
 				}
 			}
 		}
 
-		for i := int(0); i < len(s.data); i++ {
-			size := len(dirs)
-			if dirs[i%size] == port {
-				ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
-			} else {
-				conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
-				if err != nil {
-					panic(err)
-				}
-				defer conn.Close()
+		if flag {
+			break
+		}
 
-				client := protos.NewChunksUploadClient(conn)
+	}
 
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer cancel()
-
-				stream, err := client.SendChunk(ctx)
-				if err != nil {
-
-					return
-				}
-				defer stream.CloseSend()
-
-				stream.Send(&protos.Chunk{
-					Content: s.data[i],
-					Name:    s.name[i],
-				})
+	for i := int(0); i < len(s.data); i++ {
+		size := len(dirs)
+		if dirs[i%size] == port {
+			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
+		} else {
+			conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
+			if err != nil {
+				panic(err)
 			}
+			defer conn.Close()
 
+			client := protos.NewChunksUploadClient(conn)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			stream, err := client.SendChunk(ctx)
+			if err != nil {
+
+				return
+			}
+			defer stream.CloseSend()
+
+			stream.Send(&protos.Chunk{
+				Content: s.data[i],
+				Name:    s.name[i],
+			})
 		}
 
 	}
