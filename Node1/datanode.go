@@ -210,8 +210,14 @@ func repartir(dirs []string, s *DataNodeServer) {
 				Content: s.data[i],
 				Name:    s.name[i],
 			})
+
 		}
 
 	}
+	s.data = nil
+	s.name = nil
+	di := []string{"localhost:50051", "localhost:8080", "localhost:9090"}
+	s.dir = di
+	fmt.Printf("data server array: %v", s.data)
 
 }
