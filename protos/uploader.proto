@@ -12,7 +12,7 @@ service ChunksUpload {
 
 message Log {
         string NombreLibro =1;
-        int32 CantidadPartes =2;
+        int CantidadPartes =2;
         repeated string Ubicaciones =3;
 }
 

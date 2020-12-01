@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -17,6 +18,7 @@ const (
 
 type NameNodeServer struct {
 	protos.UnimplementedChunksUploadServer
+	diccionario map[string][]string
 }
 
 func main() {
@@ -27,9 +29,14 @@ func main() {
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	protos.RegisterChunksUploadServer(grpcServer, &NameNodeServer{})
+	s := &NameNodeServer{}
+	protos.RegisterChunksUploadServer(grpcServer, s)
 	fmt.Printf("escuchando\n")
 	grpcServer.Serve(listener)
-
 	defer grpcServer.Stop()
+
+}
+
+func (s *NameNodeServer) SendLog(ctx context.Context, log protos.Log) (accept protos.Accept) {
+	accept := protos.Accept{}
 }
