@@ -103,14 +103,16 @@ func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (
 		})
 
 		if err != nil {
-			log.Fatalf("search error: %v", err)
+			log.Fatalf("Es aacA?: %v", err)
 			return err
 		}
 		return nil
 
 	}
 	if err != nil {
-		log.Fatalf("search error: %v", err)
+		fmt.Printf("UPALE UPSI\n")
+		return
+		//log.Fatalf("OOOO ES ACA?: %v", err)
 
 	}
 

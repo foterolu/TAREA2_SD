@@ -102,14 +102,16 @@ func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (
 		})
 
 		if err != nil {
-			log.Fatalf("search error: %v", err)
+			log.Fatalf("Es aacA?: %v", err)
 			return err
 		}
 		return nil
 
 	}
 	if err != nil {
-		log.Fatalf("search error: %v", err)
+		fmt.Printf("UPALE UPSI\n")
+		return
+		//log.Fatalf("OOOO ES ACA?: %v", err)
 
 	}
 
@@ -182,7 +184,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		}
 
 	}
-
+	fmt.Printf("Cantidad de CHUNKS: %v\n", len(s.data))
 	for i := int(0); i < len(s.data); i++ {
 		size := len(dirs)
 		if dirs[i%size] == port {
