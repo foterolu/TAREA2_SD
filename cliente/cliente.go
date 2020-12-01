@@ -86,6 +86,8 @@ func main() {
 		stream.Send(&protos.Chunk{
 			Content: partBuffer,
 			Name:    fileName,
+			Libro:   *libro,
+			Partes:  int32(totalPartsNum),
 		})
 
 		if err != nil {

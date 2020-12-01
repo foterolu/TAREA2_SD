@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"time"
 
 	protos "../protos"
@@ -25,6 +26,7 @@ type Libro struct {
 
 type DataNodeServer struct {
 	protos.UnimplementedChunksUploadServer
+	chunk  []*protos.Chunk
 	data   [][]byte
 	name   []string
 	dir    []string
@@ -86,15 +88,17 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 			log.Fatalf("search error: %v", err)
 
 		}
-		fmt.Printf("Status: %v\n", res.Name)
+
+		s.chunk = append(s.chunk, res)
 		s.data = append(s.data, res.Content)
 		s.name = append(s.name, res.Name)
-		nuevoLibro.name = res.Name
+		nuevoLibro.name = res.Name[0 : len(res.Name)-2]
 		nuevoLibro.libro = append(nuevoLibro.libro, res)
 		//fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
 
 		//ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 	}
+	fmt.Printf("Cantidad de CHunks LOLXD : %v\n", len(s.chunk))
 	repartir(s.dir, s, nuevoLibro)
 
 	return
@@ -196,20 +200,29 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 	fmt.Printf("Cantidad de CHUNKS: %v\n", len(s.data))
 	for i := int(0); i < len(s.data); i++ {
 		size := len(dirs)
+		conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
+		if err != nil {
+
+			panic(err)
+		}
+		defer conn.Close()
+
+		client := protos.NewChunksUploadClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		if dirs[i%size] == port {
 			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
+			reporte := (&protos.Log{
+				NombreLibro:    s.chunk[i].Libro,
+				CantidadPartes: strconv.FormatInt(int64(s.chunk[i].Partes), 10),
+				Ubicaciones:    dirs[i%size],
+				Parte:          s.chunk[i].Name,
+			})
+			client.SendLog(ctx, reporte)
+
+			fmt.Printf("Reporte: %v\n", reporte)
 		} else {
-			conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
-			if err != nil {
-
-				panic(err)
-			}
-			defer conn.Close()
-
-			client := protos.NewChunksUploadClient(conn)
-
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
 
 			stream, err := client.SendChunk(ctx)
 			if err != nil {
@@ -222,6 +235,17 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 				Content: s.data[i],
 				Name:    s.name[i],
 			})
+
+			reporte := (&protos.Log{
+				NombreLibro:    s.chunk[i].Libro,
+				CantidadPartes: strconv.FormatInt(int64(s.chunk[i].Partes), 10),
+				Ubicaciones:    dirs[i%size],
+				Parte:          s.chunk[i].Name,
+			})
+
+			fmt.Printf("Reporte: %v\n", reporte)
+
+			client.SendLog(ctx, reporte)
 
 		}
 

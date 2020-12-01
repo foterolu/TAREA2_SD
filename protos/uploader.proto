@@ -12,13 +12,16 @@ service ChunksUpload {
 
 message Log {
         string NombreLibro =1;
-        int CantidadPartes =2;
-        repeated string Ubicaciones =3;
+        string CantidadPartes =2;
+        string Ubicaciones =3;
+        string parte=4;
 }
 
 message Chunk {
         bytes Content = 1;
         string Name = 2;
+        string Libro = 3;
+        int32 Partes = 4;
 }
 
 message Prop {

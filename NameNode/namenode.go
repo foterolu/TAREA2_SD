@@ -30,6 +30,8 @@ func main() {
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
 	s := &NameNodeServer{}
+
+	s.diccionario = make(map[string][]string)
 	protos.RegisterChunksUploadServer(grpcServer, s)
 	fmt.Printf("escuchando\n")
 	grpcServer.Serve(listener)
@@ -37,6 +39,11 @@ func main() {
 
 }
 
-func (s *NameNodeServer) SendLog(ctx context.Context, log protos.Log) (accept protos.Accept) {
-	accept := protos.Accept{}
+func (s *NameNodeServer) SendLog(ctx context.Context, report *protos.Log) (*protos.Accept, error) {
+	accept := &protos.Accept{}
+	fmt.Printf("QUE RECHUCHA PIJA PICO\n")
+	s.diccionario[report.NombreLibro+" "+report.CantidadPartes] = append(s.diccionario[report.NombreLibro+" "+report.CantidadPartes], report.Parte+" "+report.Ubicaciones)
+	fmt.Printf("Diccionario %v \n", s.diccionario)
+	return accept, nil
+
 }
