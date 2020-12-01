@@ -69,6 +69,7 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 	for {
 		res, err := stream.Recv()
 		if err == io.EOF {
+
 			err = stream.SendAndClose(&protos.UploadStatus{
 				Message: "Upload received with success",
 				Code:    protos.UploadStatusCode_Ok,
@@ -86,6 +87,8 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 
 		}
 		fmt.Printf("Status: %v\n", res.Name)
+		s.data = append(s.data, res.Content)
+		s.name = append(s.name, res.Name)
 		nuevoLibro.name = res.Name
 		nuevoLibro.libro = append(nuevoLibro.libro, res)
 		//fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
@@ -108,7 +111,7 @@ func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (
 		})
 
 		if err != nil {
-			log.Fatalf("Es aacA?: %v", err)
+			//log.Fatalf("Es aacA?: %v", err)
 			return err
 		}
 		return nil
@@ -198,6 +201,7 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 		} else {
 			conn, err := grpc.Dial(dirs[i%size], grpc.WithInsecure())
 			if err != nil {
+
 				panic(err)
 			}
 			defer conn.Close()
