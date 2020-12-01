@@ -6,9 +6,15 @@ service ChunksUpload {
         rpc UploadChunk(stream Chunk) returns (UploadStatus) {}
         rpc Propuesta(Prop) returns (Accept){}
         rpc SendChunk(stream Chunk) returns (UploadStatus) {}
+        rpc SendLog(Log) returns (Accept){}
         
 }
 
+message Log {
+        string NombreLibro =1;
+        int CantidadPartes =2;
+        object Ubicaciones =3;
+}
 
 message Chunk {
         bytes Content = 1;

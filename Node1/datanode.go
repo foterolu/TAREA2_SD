@@ -18,11 +18,17 @@ const (
 	port = "localhost:50051"
 )
 
+type Libro struct {
+	name  string
+	libro []*protos.Chunk
+}
+
 type DataNodeServer struct {
 	protos.UnimplementedChunksUploadServer
-	data [][]byte
-	name []string
-	dir  []string
+	data   [][]byte
+	name   []string
+	dir    []string
+	Libros []Libro
 }
 
 func remove(slice []string, s int) []string {
@@ -59,7 +65,7 @@ func main() {
 }
 
 func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServer) (err error) {
-
+	nuevoLibro := Libro{}
 	for {
 		res, err := stream.Recv()
 		if err == io.EOF {
@@ -80,13 +86,13 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 
 		}
 		fmt.Printf("Status: %v\n", res.Name)
-		s.data = append(s.data, res.Content)
-		s.name = append(s.name, res.Name)
+		nuevoLibro.name = res.Name
+		nuevoLibro.libro = append(nuevoLibro.libro, res)
 		//fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
 
 		//ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 	}
-	repartir(s.dir, s)
+	repartir(s.dir, s, nuevoLibro)
 
 	return
 
@@ -137,7 +143,7 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 }
 
-func repartir(dirs []string, s *DataNodeServer) {
+func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	flag := false
