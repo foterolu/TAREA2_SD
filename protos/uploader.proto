@@ -12,8 +12,8 @@ service ChunksUpload {
 
 message Log {
         string NombreLibro =1;
-        int CantidadPartes =2;
-        object Ubicaciones =3;
+        int32 CantidadPartes =2;
+        repeated string Ubicaciones =3;
 }
 
 message Chunk {
