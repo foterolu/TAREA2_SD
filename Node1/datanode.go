@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	port = "localhost:50051"
+	port     = "localhost:50051"
+	namenode = "localhost:4040"
 )
 
 type Libro struct {
@@ -38,7 +39,7 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", "localhost:50051")
+	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		panic(err)
 	}
@@ -211,6 +212,7 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+
 		if dirs[i%size] == port {
 			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
 			reporte := (&protos.Log{
@@ -219,7 +221,14 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 				Ubicaciones:    dirs[i%size],
 				Parte:          s.chunk[i].Name,
 			})
-			client.SendLog(ctx, reporte)
+			conn2, err := grpc.Dial(namenode, grpc.WithInsecure())
+			if err != nil {
+
+				panic(err)
+			}
+			client2 := protos.NewChunksUploadClient(conn2)
+			client2.SendLog(ctx, reporte)
+			conn2.Close()
 
 			fmt.Printf("Reporte: %v\n", reporte)
 		} else {
@@ -242,6 +251,14 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 				Ubicaciones:    dirs[i%size],
 				Parte:          s.chunk[i].Name,
 			})
+			conn2, err := grpc.Dial(namenode, grpc.WithInsecure())
+			if err != nil {
+
+				panic(err)
+			}
+			client2 := protos.NewChunksUploadClient(conn2)
+			client2.SendLog(ctx, reporte)
+			conn2.Close()
 
 			fmt.Printf("Reporte: %v\n", reporte)
 
@@ -252,6 +269,7 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 	}
 	s.data = nil
 	s.name = nil
+	s.chunk = nil
 	di := []string{"localhost:50051", "localhost:8080", "localhost:9090"}
 	s.dir = di
 	fmt.Printf("data server array: %v", s.data)

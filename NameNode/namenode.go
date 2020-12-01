@@ -23,7 +23,7 @@ type NameNodeServer struct {
 
 func main() {
 
-	listener, err := net.Listen("tcp", dir0)
+	listener, err := net.Listen("tcp", dir3)
 	if err != nil {
 		panic(err)
 	}
