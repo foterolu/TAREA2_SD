@@ -261,3 +261,35 @@ func repartir(dirs []string, s *DataNodeServer) {
 	fmt.Printf("data server array: %v", s.data)
 
 }
+
+func (s *DataNodeServer) DownloadChunk(ctx context.Context, name *protos.Prop) (*protos.Chunk, error) {
+
+	newFileChunk, err := os.Open(name.Node)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	defer newFileChunk.Close()
+
+	chunkInfo, err := newFileChunk.Stat()
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	var chunkSize int64 = chunkInfo.Size()
+	chunkBufferBytes := make([]byte, chunkSize)
+	newFileChunk.Read(chunkBufferBytes)
+
+	chunk := &protos.Chunk{
+		Content: chunkBufferBytes,
+		Name:    name.Node,
+		Libro:   name.Node[0 : len(name.Node)-2],
+		Partes:  int32(chunkSize),
+	}
+
+	return chunk, nil
+}

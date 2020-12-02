@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	node0    = "localhost:5050"
 	node3    = "localhost:9090"
 	node1    = "localhost:50051"
 	node2    = "localhost:8080"
@@ -147,29 +148,75 @@ func main() {
 		p := &protos.Prop{
 			Node: *libro,
 		}
+		mu.Lock()
 
 		ad, _ := client.RequestAdress(ctx, p)
-		fmt.Printf("%v\n", ad.Adress[1])
 
-		listener, err := net.Listen("tcp", node1)
+		// Inicializacion del server
+		/*
+			listener, err := net.Listen("tcp", node0)
+			if err != nil {
+				panic(err)
+			}
+			var opts []grpc.ServerOption
+			grpcServer := grpc.NewServer(opts...)
+
+			s := &DataNodeServer{}
+			protos.RegisterChunksUploadServer(grpcServer, s)
+			fmt.Printf("escuchando\n")
+			grpcServer.Serve(listener)
+
+
+
+			defer grpcServer.Stop()
+		*/
+		newFileName := "downloads/" + *libro + ".pdf"
+		_, err = os.Create(newFileName)
+
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
-		var opts []grpc.ServerOption
-		grpcServer := grpc.NewServer(opts...)
 
-		di := []string{node1, node2, node3}
-		s := &DataNodeServer{}
-		s.dir = di
-		protos.RegisterChunksUploadServer(grpcServer, s)
-		fmt.Printf("escuchando\n")
-		grpcServer.Serve(listener)
-
-		fmt.Printf("escuchando\n")
-
-		defer grpcServer.Stop()
+		file, err := os.OpenFile(newFileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		//var writePosition int64 = 0
 
 		//Aca crear metodos para recibir chunks
+
+		for i := 0; i < len(ad.Adress); i++ {
+			data := strings.Split(ad.Adress[i], " ")
+
+			conn2, err := grpc.Dial(data[1], grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+			if err != nil {
+				fmt.Printf("ERRROOOOOOR\n")
+				panic(err)
+			}
+			defer conn.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			client2 := protos.NewChunksUploadClient(conn2)
+			pr := &protos.Prop{
+				Node: data[0]}
+
+			chunk, err := client2.DownloadChunk(ctx, pr)
+			fmt.Printf("%v\n", chunk)
+			chunkBufferBytes := chunk.Content
+			//writePosition = writePosition + chunk.Partes
+
+			n, err := file.Write(chunkBufferBytes)
+			file.Sync() //flush to disk
+
+			chunkBufferBytes = nil
+			fmt.Println("Written ", n, " bytes")
+
+		}
+		file.Close()
+		mu.Unlock()
 
 	}
 

@@ -8,7 +8,7 @@ service ChunksUpload {
         rpc SendChunk(stream Chunk) returns (UploadStatus) {}
         rpc SendLog(Log) returns (Accept){}
         rpc RequestAdress(Prop) returns(Adress) {}
-        rpc DownloadChunk(Prop) returns(stream Chunk) {}
+        rpc DownloadChunk(Prop) returns(Chunk) {}
         
 }
 
