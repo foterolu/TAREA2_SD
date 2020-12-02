@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,6 +26,10 @@ const (
 
 var (
 	mu sync.RWMutex
+)
+
+var (
+	ipNode = flag.String("ip_node", "", "ip del nodo")
 )
 
 type DataNodeServer struct {
@@ -55,16 +60,6 @@ func main() {
 
 	fmt.Printf("escuchando\n")
 
-	/*
-	   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	   	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
-	   	if err != nil {
-	   		panic(err)
-	   	}
-	   	defer conn.Close()
-
-	   	if s.data*/
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	defer grpcServer.Stop()
 }
 
