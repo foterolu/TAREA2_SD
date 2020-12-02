@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,6 +26,10 @@ const (
 
 var (
 	mu sync.RWMutex
+)
+
+var (
+	ipNode = flag.String("ip_node", "", "ip del nodo")
 )
 
 type DataNodeServer struct {
@@ -152,7 +157,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		} else if len(dirs) == 1 {
 			ip.Node = dirs[0]
 			aceptacion, _ := s.Propuesta(ctx, ip)
-			//fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
+			fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
 			if !aceptacion.Flag {
 				fmt.Printf("Propuesta Rechazada, no Hay nodos disponibles\n")
 				dirs = remove(dirs, 0)
