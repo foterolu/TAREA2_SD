@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,10 +25,6 @@ const (
 
 var (
 	mu sync.RWMutex
-)
-
-var (
-	ipNode = flag.String("ip_node", "", "ip del nodo")
 )
 
 type DataNodeServer struct {
