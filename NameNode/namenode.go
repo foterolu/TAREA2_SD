@@ -17,10 +17,10 @@ import (
 )
 
 const (
-	dir0 = "localhost:9090"
-	dir1 = "localhost:50051"
-	dir2 = "localhost:8080"
-	dir3 = "localhost:4040"
+	node3    = "10.10.28.47:8080"
+	node1    = "10.10.28.45:8080"
+	node2    = "10.10.28.46:8080"
+	namenode = "10.10.28.48:8080"
 )
 
 var (
@@ -35,7 +35,7 @@ type NameNodeServer struct {
 
 func main() {
 
-	listener, err := net.Listen("tcp", dir3)
+	listener, err := net.Listen("tcp", namenode)
 	if err != nil {
 		panic(err)
 	}

@@ -17,11 +17,10 @@ import (
 )
 
 const (
-	node0    = "localhost:5050"
-	node3    = "localhost:9090"
-	node1    = "localhost:50051"
-	node2    = "localhost:8080"
-	namenode = "localhost:4040"
+	node3    = "10.10.28.47:8080"
+	node1    = "10.10.28.45:8080"
+	node2    = "10.10.28.46:8080"
+	namenode = "10.10.28.48:8080"
 )
 
 var (
@@ -153,24 +152,6 @@ func main() {
 
 		ad, _ := client.RequestAdress(ctx, p)
 
-		// Inicializacion del server
-		/*
-			listener, err := net.Listen("tcp", node0)
-			if err != nil {
-				panic(err)
-			}
-			var opts []grpc.ServerOption
-			grpcServer := grpc.NewServer(opts...)
-
-			s := &DataNodeServer{}
-			protos.RegisterChunksUploadServer(grpcServer, s)
-			fmt.Printf("escuchando\n")
-			grpcServer.Serve(listener)
-
-
-
-			defer grpcServer.Stop()
-		*/
 		newFileName := "downloads/" + *libro + ".pdf"
 		_, err = os.Create(newFileName)
 

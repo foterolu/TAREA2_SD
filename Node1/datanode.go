@@ -18,10 +18,10 @@ import (
 )
 
 const (
-	node3    = "localhost:9090"
-	node1    = "localhost:50051"
-	node2    = "localhost:8080"
-	namenode = "localhost:4040"
+	node3    = "10.10.28.47:8080"
+	node1    = "10.10.28.45:8080"
+	node2    = "10.10.28.46:8080"
+	namenode = "10.10.28.48:8080"
 )
 
 var (
