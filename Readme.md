@@ -4,5 +4,6 @@
 - [x] Comunicar DataNodes
 - [x] Generar propuesta
 - [x] Enviar Chunks a datanodes correspondiente
-- [ ] Enviar propuesta a namenode con las direcciones de cada parte del libro
+- [x] Enviar propuesta a namenode con las direcciones de cada parte del libro
+- [x] Escribir direccion de las partes en Log.txt
 - [ ] Generar un cliente downloader
