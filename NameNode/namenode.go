@@ -9,6 +9,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	protos "../protos"
 	"google.golang.org/grpc"
@@ -21,7 +23,10 @@ const (
 	dir3 = "localhost:4040"
 )
 
-var cont int
+var (
+	mu   sync.RWMutex
+	cont int
+)
 
 type NameNodeServer struct {
 	protos.UnimplementedChunksUploadServer
@@ -127,5 +132,37 @@ func (s *NameNodeServer) RequestAdress(ctx context.Context, nombre *protos.Prop)
 	}
 
 	return adress, nil
+
+}
+
+func (s *NameNodeServer) PropuestaCentralizada(ctx context.Context, propuesta *protos.Adress) (*protos.Adress, error) {
+
+	flag := false
+	aceptacion := []string{}
+	direcciones := propuesta.Adress
+
+	for i := 0; i < len(direcciones); i++ {
+
+		conn, err := grpc.Dial(direcciones[i], grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(1*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+
+		if err == nil {
+			defer conn.Close()
+			aceptacion = append(aceptacion, direcciones[i])
+			fmt.Printf("%v\n", aceptacion)
+			flag = true
+
+		}
+
+	}
+	if !flag {
+		fmt.Printf("No existe propuesta factible\n")
+	}
+	fmt.Printf("La propuesta es UWU%v\n", aceptacion)
+
+	validProp := &protos.Adress{
+		Adress: aceptacion,
+	}
+
+	return validProp, nil
 
 }

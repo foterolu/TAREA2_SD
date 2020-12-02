@@ -30,6 +30,7 @@ var (
 	mu      sync.RWMutex
 )
 
+//DataNodeServer Estructura del server
 type DataNodeServer struct {
 	protos.UnimplementedChunksUploadServer
 	chunk []*protos.Chunk
@@ -41,7 +42,7 @@ type DataNodeServer struct {
 func main() {
 	flag.Parse()
 	if *cliente == "uploader" {
-		conn, err := grpc.Dial(node2, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err != nil {
 			fmt.Printf("ERRROOOOOOR\n")

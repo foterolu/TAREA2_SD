@@ -23,6 +23,7 @@ type ChunksUploadClient interface {
 	SendLog(ctx context.Context, in *Log, opts ...grpc.CallOption) (*Accept, error)
 	RequestAdress(ctx context.Context, in *Prop, opts ...grpc.CallOption) (*Adress, error)
 	DownloadChunk(ctx context.Context, in *Prop, opts ...grpc.CallOption) (*Chunk, error)
+	PropuestaCentralizada(ctx context.Context, in *Adress, opts ...grpc.CallOption) (*Adress, error)
 }
 
 type chunksUploadClient struct {
@@ -137,6 +138,15 @@ func (c *chunksUploadClient) DownloadChunk(ctx context.Context, in *Prop, opts .
 	return out, nil
 }
 
+func (c *chunksUploadClient) PropuestaCentralizada(ctx context.Context, in *Adress, opts ...grpc.CallOption) (*Adress, error) {
+	out := new(Adress)
+	err := c.cc.Invoke(ctx, "/cliente.ChunksUpload/PropuestaCentralizada", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChunksUploadServer is the server API for ChunksUpload service.
 // All implementations must embed UnimplementedChunksUploadServer
 // for forward compatibility
@@ -147,6 +157,7 @@ type ChunksUploadServer interface {
 	SendLog(context.Context, *Log) (*Accept, error)
 	RequestAdress(context.Context, *Prop) (*Adress, error)
 	DownloadChunk(context.Context, *Prop) (*Chunk, error)
+	PropuestaCentralizada(context.Context, *Adress) (*Adress, error)
 	mustEmbedUnimplementedChunksUploadServer()
 }
 
@@ -171,6 +182,9 @@ func (UnimplementedChunksUploadServer) RequestAdress(context.Context, *Prop) (*A
 }
 func (UnimplementedChunksUploadServer) DownloadChunk(context.Context, *Prop) (*Chunk, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DownloadChunk not implemented")
+}
+func (UnimplementedChunksUploadServer) PropuestaCentralizada(context.Context, *Adress) (*Adress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PropuestaCentralizada not implemented")
 }
 func (UnimplementedChunksUploadServer) mustEmbedUnimplementedChunksUploadServer() {}
 
@@ -309,6 +323,24 @@ func _ChunksUpload_DownloadChunk_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChunksUpload_PropuestaCentralizada_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Adress)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChunksUploadServer).PropuestaCentralizada(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cliente.ChunksUpload/PropuestaCentralizada",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChunksUploadServer).PropuestaCentralizada(ctx, req.(*Adress))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChunksUpload_ServiceDesc is the grpc.ServiceDesc for ChunksUpload service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -331,6 +363,10 @@ var ChunksUpload_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DownloadChunk",
 			Handler:    _ChunksUpload_DownloadChunk_Handler,
+		},
+		{
+			MethodName: "PropuestaCentralizada",
+			Handler:    _ChunksUpload_PropuestaCentralizada_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

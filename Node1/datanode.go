@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,7 +25,8 @@ const (
 )
 
 var (
-	mu sync.RWMutex
+	sistema = flag.String("sistema", "", "tipo sistema")
+	mu      sync.RWMutex
 )
 
 type DataNodeServer struct {
@@ -40,6 +42,7 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
+	flag.Parse()
 	listener, err := net.Listen("tcp", node1)
 	if err != nil {
 		panic(err)
@@ -87,7 +90,7 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 		s.data = append(s.data, res.Content)
 		s.name = append(s.name, res.Name)
 	}
-	fmt.Printf("Cantidad de CHunks LOLXD : %v\n", len(s.chunk))
+
 	repartir(s.dir, s)
 	mu.Unlock()
 
@@ -145,46 +148,70 @@ func repartir(dirs []string, s *DataNodeServer) {
 	defer cancel()
 	flag := false
 	ip := &protos.Prop{}
-	for { //loop infinito
+	if *sistema == "distribuido" {
+		for { //loop infinito
 
-		if len(dirs) == 0 {
-			fmt.Printf("No hay nodos funcionando, Todo se guara aca ctm lol xd\n")
-			break
-		} else if len(dirs) == 1 {
-			ip.Node = dirs[0]
-			aceptacion, _ := s.Propuesta(ctx, ip)
-			fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
-			if !aceptacion.Flag {
-				fmt.Printf("Propuesta Rechazada, no Hay nodos disponibles\n")
-				dirs = remove(dirs, 0)
-				return
-			} else {
+			if len(dirs) == 0 {
+				fmt.Printf("No hay nodos funcionando, Todo se guara aca ctm lol xd\n")
 				break
+			} else if len(dirs) == 1 {
+				ip.Node = dirs[0]
+				aceptacion, _ := s.Propuesta(ctx, ip)
+				fmt.Printf("La propuesta es: %v \n", aceptacion.Flag)
+				if !aceptacion.Flag {
+					fmt.Printf("Propuesta Rechazada, no Hay nodos disponibles\n")
+					dirs = remove(dirs, 0)
+					return
+				} else {
+					break
+
+				}
 
 			}
 
-		}
+			for i := int(0); i < len(dirs); i++ {
+				if dirs[i] != node1 {
 
-		for i := int(0); i < len(dirs); i++ {
-			if dirs[i] != node1 {
-
-				ip.Node = dirs[i]
-				aceptacion, _ := s.Propuesta(ctx, ip)
-				fmt.Printf("La propuesta es: %v \n", dirs)
-				if !aceptacion.Flag {
-					fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
-					dirs = remove(dirs, i)
-					break
-				} else if aceptacion.Flag && i == len(dirs)-1 {
-					fmt.Printf("Propuesta aceptada: %v \n", dirs)
-					flag = true
+					ip.Node = dirs[i]
+					aceptacion, _ := s.Propuesta(ctx, ip)
+					fmt.Printf("La propuesta es: %v \n", dirs)
+					if !aceptacion.Flag {
+						fmt.Printf("Propuesta Rechazada, generando nueva propuesta\n")
+						dirs = remove(dirs, i)
+						break
+					} else if aceptacion.Flag && i == len(dirs)-1 {
+						fmt.Printf("Propuesta aceptada: %v \n", dirs)
+						flag = true
+					}
 				}
 			}
-		}
 
-		if flag {
-			break
+			if flag {
+				break
+			}
+
 		}
+	} else if *sistema == "centralizado" {
+		//invocar servicio
+
+		conn2, err := grpc.Dial(namenode, grpc.WithInsecure())
+		if err != nil {
+
+			panic(err)
+		}
+		defer conn2.Close()
+
+		client2 := protos.NewChunksUploadClient(conn2)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		fmt.Printf("Conectó: %v \n", dirs)
+		add := &protos.Adress{
+			Adress: dirs,
+		}
+		aux, _ := client2.PropuestaCentralizada(ctx, add)
+
+		dirs = aux.Adress
 
 	}
 	fmt.Printf("Cantidad de CHUNKS: %v\n", len(s.data))
