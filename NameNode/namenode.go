@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
+	"os"
 
 	protos "../protos"
 	"google.golang.org/grpc"
@@ -41,9 +43,25 @@ func main() {
 
 func (s *NameNodeServer) SendLog(ctx context.Context, report *protos.Log) (*protos.Accept, error) {
 	accept := &protos.Accept{}
-	fmt.Printf("QUE RECHUCHA PIJA PICO\n")
 	s.diccionario[report.NombreLibro+" "+report.CantidadPartes] = append(s.diccionario[report.NombreLibro+" "+report.CantidadPartes], report.Parte+" "+report.Ubicaciones)
 	fmt.Printf("Diccionario %v \n", s.diccionario)
+	makeLog(s)
 	return accept, nil
+
+}
+
+func makeLog(s *NameNodeServer) {
+	f, err := os.OpenFile("log.txt", os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	for key := range s.diccionario {
+		f.WriteString(key + "\n")
+		for i := 0; i < len(s.diccionario[key]); i++ {
+			f.WriteString(s.diccionario[key][i] + "\n")
+		}
+	}
 
 }

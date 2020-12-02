@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	protos "../protos"
@@ -20,18 +21,16 @@ const (
 	namenode = "localhost:4040"
 )
 
-type Libro struct {
-	name  string
-	libro []*protos.Chunk
-}
+var (
+	mu sync.RWMutex
+)
 
 type DataNodeServer struct {
 	protos.UnimplementedChunksUploadServer
-	chunk  []*protos.Chunk
-	data   [][]byte
-	name   []string
-	dir    []string
-	Libros []Libro
+	chunk []*protos.Chunk
+	data  [][]byte
+	name  []string
+	dir   []string
 }
 
 func remove(slice []string, s int) []string {
@@ -54,21 +53,12 @@ func main() {
 
 	fmt.Printf("escuchando\n")
 
-	/*
-	   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	   	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
-	   	if err != nil {
-	   		panic(err)
-	   	}
-	   	defer conn.Close()
-
-	   	if s.data*/
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	defer grpcServer.Stop()
 }
 
 func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServer) (err error) {
-	nuevoLibro := Libro{}
+
+	mu.Lock()
 	for {
 		res, err := stream.Recv()
 		if err == io.EOF {
@@ -93,14 +83,10 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 		s.chunk = append(s.chunk, res)
 		s.data = append(s.data, res.Content)
 		s.name = append(s.name, res.Name)
-		nuevoLibro.name = res.Name[0 : len(res.Name)-2]
-		nuevoLibro.libro = append(nuevoLibro.libro, res)
-		//fmt.Printf("data length: %v\n", len(s.data[len(s.data)-1]))
-
-		//ioutil.WriteFile(res.Name, res.Content, os.ModeAppend)
 	}
 	fmt.Printf("Cantidad de CHunks LOLXD : %v\n", len(s.chunk))
-	repartir(s.dir, s, nuevoLibro)
+	repartir(s.dir, s)
+	mu.Unlock()
 
 	return
 
@@ -151,7 +137,7 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 }
 
-func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
+func repartir(dirs []string, s *DataNodeServer) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	flag := false
@@ -259,8 +245,6 @@ func repartir(dirs []string, s *DataNodeServer, nuevoLibro Libro) {
 			client2 := protos.NewChunksUploadClient(conn2)
 			client2.SendLog(ctx, reporte)
 			conn2.Close()
-
-			fmt.Printf("Reporte: %v\n", reporte)
 
 			client.SendLog(ctx, reporte)
 

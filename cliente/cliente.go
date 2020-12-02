@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	protos "../protos"
@@ -20,12 +21,13 @@ const (
 
 var (
 	libro = flag.String("libro", "", "nombre del libro")
+	mu    sync.RWMutex
 )
 
 func main() {
 	flag.Parse()
 
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+	conn, err := grpc.Dial("localhost:9090", grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 	if err != nil {
 		fmt.Printf("ERRROOOOOOR\n")
