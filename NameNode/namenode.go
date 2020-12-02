@@ -120,7 +120,6 @@ func (s *NameNodeServer) RequestAdress(ctx context.Context, nombre *protos.Prop)
 			flag = true
 		}
 
-		fmt.Println(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {

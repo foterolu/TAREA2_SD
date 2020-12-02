@@ -22,6 +22,7 @@ type ChunksUploadClient interface {
 	SendChunk(ctx context.Context, opts ...grpc.CallOption) (ChunksUpload_SendChunkClient, error)
 	SendLog(ctx context.Context, in *Log, opts ...grpc.CallOption) (*Accept, error)
 	RequestAdress(ctx context.Context, in *Prop, opts ...grpc.CallOption) (*Adress, error)
+	DownloadChunk(ctx context.Context, in *Prop, opts ...grpc.CallOption) (ChunksUpload_DownloadChunkClient, error)
 }
 
 type chunksUploadClient struct {
@@ -127,6 +128,38 @@ func (c *chunksUploadClient) RequestAdress(ctx context.Context, in *Prop, opts .
 	return out, nil
 }
 
+func (c *chunksUploadClient) DownloadChunk(ctx context.Context, in *Prop, opts ...grpc.CallOption) (ChunksUpload_DownloadChunkClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ChunksUpload_ServiceDesc.Streams[2], "/cliente.ChunksUpload/DownloadChunk", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &chunksUploadDownloadChunkClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ChunksUpload_DownloadChunkClient interface {
+	Recv() (*Chunk, error)
+	grpc.ClientStream
+}
+
+type chunksUploadDownloadChunkClient struct {
+	grpc.ClientStream
+}
+
+func (x *chunksUploadDownloadChunkClient) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ChunksUploadServer is the server API for ChunksUpload service.
 // All implementations must embed UnimplementedChunksUploadServer
 // for forward compatibility
@@ -136,6 +169,7 @@ type ChunksUploadServer interface {
 	SendChunk(ChunksUpload_SendChunkServer) error
 	SendLog(context.Context, *Log) (*Accept, error)
 	RequestAdress(context.Context, *Prop) (*Adress, error)
+	DownloadChunk(*Prop, ChunksUpload_DownloadChunkServer) error
 	mustEmbedUnimplementedChunksUploadServer()
 }
 
@@ -157,6 +191,9 @@ func (UnimplementedChunksUploadServer) SendLog(context.Context, *Log) (*Accept, 
 }
 func (UnimplementedChunksUploadServer) RequestAdress(context.Context, *Prop) (*Adress, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestAdress not implemented")
+}
+func (UnimplementedChunksUploadServer) DownloadChunk(*Prop, ChunksUpload_DownloadChunkServer) error {
+	return status.Errorf(codes.Unimplemented, "method DownloadChunk not implemented")
 }
 func (UnimplementedChunksUploadServer) mustEmbedUnimplementedChunksUploadServer() {}
 
@@ -277,6 +314,27 @@ func _ChunksUpload_RequestAdress_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChunksUpload_DownloadChunk_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Prop)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ChunksUploadServer).DownloadChunk(m, &chunksUploadDownloadChunkServer{stream})
+}
+
+type ChunksUpload_DownloadChunkServer interface {
+	Send(*Chunk) error
+	grpc.ServerStream
+}
+
+type chunksUploadDownloadChunkServer struct {
+	grpc.ServerStream
+}
+
+func (x *chunksUploadDownloadChunkServer) Send(m *Chunk) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ChunksUpload_ServiceDesc is the grpc.ServiceDesc for ChunksUpload service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -307,6 +365,11 @@ var ChunksUpload_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "SendChunk",
 			Handler:       _ChunksUpload_SendChunk_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "DownloadChunk",
+			Handler:       _ChunksUpload_DownloadChunk_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "uploader.proto",

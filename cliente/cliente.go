@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"net"
 	"os"
 	"strconv"
 	"sync"
@@ -27,6 +28,14 @@ var (
 	libro   = flag.String("libro", "", "nombre del libro")
 	mu      sync.RWMutex
 )
+
+type DataNodeServer struct {
+	protos.UnimplementedChunksUploadServer
+	chunk []*protos.Chunk
+	data  [][]byte
+	name  []string
+	dir   []string
+}
 
 func main() {
 	flag.Parse()
@@ -140,7 +149,27 @@ func main() {
 		}
 
 		ad, _ := client.RequestAdress(ctx, p)
-		fmt.Printf("%v\n", ad)
+		fmt.Printf("%v\n", ad.Adress[1])
+
+		listener, err := net.Listen("tcp", node1)
+		if err != nil {
+			panic(err)
+		}
+		var opts []grpc.ServerOption
+		grpcServer := grpc.NewServer(opts...)
+
+		di := []string{node1, node2, node3}
+		s := &DataNodeServer{}
+		s.dir = di
+		protos.RegisterChunksUploadServer(grpcServer, s)
+		fmt.Printf("escuchando\n")
+		grpcServer.Serve(listener)
+
+		fmt.Printf("escuchando\n")
+
+		defer grpcServer.Stop()
+
+		//Aca crear metodos para recibir chunks
 
 	}
 

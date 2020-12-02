@@ -1,13 +1,6 @@
-Escalas-Cesar_Vallejo 2
-Escalas-Cesar_Vallejo_0 localhost:8080
-Escalas-Cesar_Vallejo_1 localhost:8080
+
 Diez_negritos-Christie_Agatha 4
 Diez_negritos-Christie_Agatha_0 localhost:8080
-Diez_negritos-Christie_Agatha_1 localhost:8080
+Diez_negritos-Christie_Agatha_1 localhost:50051
 Diez_negritos-Christie_Agatha_2 localhost:8080
-Diez_negritos-Christie_Agatha_3 localhost:8080
-Diez_negritos-Christie_Agatha 4
-Diez_negritos-Christie_Agatha_0 localhost:8080
-Diez_negritos-Christie_Agatha_1 localhost:8080
-Diez_negritos-Christie_Agatha_2 localhost:8080
-Diez_negritos-Christie_Agatha_3 localhost:8080
+Diez_negritos-Christie_Agatha_3 localhost:50051
