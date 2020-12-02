@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	dir0     = "localhost:9090"
-	dir1     = "localhost:50051"
-	dir2     = "localhost:8080"
+	node3    = "localhost:9090"
+	node1    = "localhost:50051"
+	node2    = "localhost:8080"
 	namenode = "localhost:4040"
 )
 
@@ -40,13 +40,13 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", dir0)
+	listener, err := net.Listen("tcp", node3)
 	if err != nil {
 		panic(err)
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	di := []string{dir0, dir2, dir1}
+	di := []string{node3, node2, node1}
 	s := &DataNodeServer{}
 	s.dir = di
 	protos.RegisterChunksUploadServer(grpcServer, s)
@@ -175,7 +175,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		}
 
 		for i := int(0); i < len(dirs); i++ {
-			if dirs[i] != dir0 {
+			if dirs[i] != node3 {
 
 				ip.Node = dirs[i]
 				aceptacion, _ := s.Propuesta(ctx, ip)
@@ -211,7 +211,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if dirs[i%size] == dir0 {
+		if dirs[i%size] == node3 {
 			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
 			reporte := (&protos.Log{
 				NombreLibro:    s.chunk[i].Libro,
@@ -266,7 +266,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 	s.data = nil
 	s.name = nil
 	s.chunk = nil
-	di := []string{dir0, dir2, dir1}
+	di := []string{node3, node2, node1}
 	s.dir = di
 	fmt.Printf("data server array: %v", s.data)
 

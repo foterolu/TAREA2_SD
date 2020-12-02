@@ -41,11 +41,22 @@ func main() {
 
 }
 
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *NameNodeServer) SendLog(ctx context.Context, report *protos.Log) (*protos.Accept, error) {
 	accept := &protos.Accept{}
-	s.diccionario[report.NombreLibro+" "+report.CantidadPartes] = append(s.diccionario[report.NombreLibro+" "+report.CantidadPartes], report.Parte+" "+report.Ubicaciones)
-	fmt.Printf("Diccionario %v \n", s.diccionario)
-	makeLog(s)
+	if !contains(s.diccionario[report.NombreLibro+" "+report.CantidadPartes], report.Parte+" "+report.Ubicaciones) {
+		s.diccionario[report.NombreLibro+" "+report.CantidadPartes] = append(s.diccionario[report.NombreLibro+" "+report.CantidadPartes], report.Parte+" "+report.Ubicaciones)
+		fmt.Printf("Diccionario %v \n", s.diccionario)
+		makeLog(s)
+	}
 	return accept, nil
 
 }
