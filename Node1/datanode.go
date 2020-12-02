@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,12 +18,15 @@ import (
 )
 
 const (
-	port     = "localhost:50051"
 	namenode = "localhost:4040"
 )
 
 var (
 	mu sync.RWMutex
+)
+
+var (
+	ipNode = flag.String("ip_node", "", "ip del nodo")
 )
 
 type DataNodeServer struct {
@@ -38,7 +42,8 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", port)
+	flag.Parse()
+	listener, err := net.Listen("tcp", *ipNode)
 	if err != nil {
 		panic(err)
 	}
@@ -163,7 +168,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		}
 
 		for i := int(0); i < len(dirs); i++ {
-			if dirs[i] != port {
+			if dirs[i] != *ipNode {
 
 				ip.Node = dirs[i]
 				aceptacion, _ := s.Propuesta(ctx, ip)
@@ -199,7 +204,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if dirs[i%size] == port {
+		if dirs[i%size] == *ipNode {
 			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
 			reporte := (&protos.Log{
 				NombreLibro:    s.chunk[i].Libro,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,14 +18,15 @@ import (
 )
 
 const (
-	dir0     = "localhost:9090"
-	dir1     = "localhost:50051"
-	dir2     = "localhost:8080"
 	namenode = "localhost:4040"
 )
 
 var (
 	mu sync.RWMutex
+)
+
+var (
+	ipNode = flag.String("ip_node", "", "ip del nodo")
 )
 
 type DataNodeServer struct {
@@ -40,13 +42,14 @@ func remove(slice []string, s int) []string {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", dir0)
+	flag.Parse()
+	listener, err := net.Listen("tcp", *ipNode)
 	if err != nil {
 		panic(err)
 	}
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
-	di := []string{dir0, dir2, dir1}
+	di := []string{"localhost:50051", "localhost:8080", "localhost:9090"}
 	s := &DataNodeServer{}
 	s.dir = di
 	protos.RegisterChunksUploadServer(grpcServer, s)
@@ -55,16 +58,6 @@ func main() {
 
 	fmt.Printf("escuchando\n")
 
-	/*
-	   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	   	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure()) //deberia conectarse a cualquiera de los 3 nodeos
-	   	if err != nil {
-	   		panic(err)
-	   	}
-	   	defer conn.Close()
-
-	   	if s.data*/
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	defer grpcServer.Stop()
 }
 
@@ -175,7 +168,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		}
 
 		for i := int(0); i < len(dirs); i++ {
-			if dirs[i] != dir0 {
+			if dirs[i] != *ipNode {
 
 				ip.Node = dirs[i]
 				aceptacion, _ := s.Propuesta(ctx, ip)
@@ -211,7 +204,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if dirs[i%size] == dir0 {
+		if dirs[i%size] == *ipNode {
 			ioutil.WriteFile(s.name[i], s.data[i], os.ModeAppend)
 			reporte := (&protos.Log{
 				NombreLibro:    s.chunk[i].Libro,
@@ -266,7 +259,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 	s.data = nil
 	s.name = nil
 	s.chunk = nil
-	di := []string{dir0, dir2, dir1}
+	di := []string{"localhost:50051", "localhost:8080", "localhost:9090"}
 	s.dir = di
 	fmt.Printf("data server array: %v", s.data)
 
