@@ -30,7 +30,7 @@ var (
 
 func main() {
 	flag.Parse()
-	if *cliente == "downloader" {
+	if *cliente == "uploader" {
 		conn, err := grpc.Dial(node2, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err != nil {
@@ -122,6 +122,26 @@ func main() {
 		// just for fun, let's recombine back the chunked files in a new file
 
 		//file.Close()
+	}
+
+	if *cliente == "downloader" {
+		conn, err := grpc.Dial(namenode, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
+		if err != nil {
+			fmt.Printf("ERRROOOOOOR\n")
+			panic(err)
+		}
+		defer conn.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		client := protos.NewChunksUploadClient(conn)
+		p := &protos.Prop{
+			Node: *libro,
+		}
+
+		ad, _ := client.RequestAdress(ctx, p)
+		fmt.Printf("%v\n", ad)
+
 	}
 
 }

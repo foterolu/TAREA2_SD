@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"strconv"
+	"strings"
 
 	protos "../protos"
 	"google.golang.org/grpc"
@@ -85,5 +87,46 @@ func makeLog(s *NameNodeServer) {
 			f.WriteString(s.diccionario[key][i] + "\n")
 		}
 	}
+
+}
+
+func (s *NameNodeServer) RequestAdress(ctx context.Context, nombre *protos.Prop) (*protos.Adress, error) {
+	adress := &protos.Adress{}
+	//adress.Adress = make([]string)
+	f, err := os.OpenFile("log.txt", os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	flag := false
+	scanner := bufio.NewScanner(f)
+	aux := 0
+	aux2 := -1
+	for scanner.Scan() {
+		linea := scanner.Text()
+		list := strings.Split((strings.Split(linea, "\n")[0]), " ")
+		if flag {
+			aux++
+			ad := list[0] + " " + list[1]
+			adress.Adress = append(adress.Adress, ad)
+			if aux2 == aux {
+				return adress, nil
+			}
+
+		}
+		if list[0] == nombre.Node {
+			i, _ := strconv.Atoi(list[1])
+			aux2 = i
+			flag = true
+		}
+
+		fmt.Println(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return adress, nil
 
 }

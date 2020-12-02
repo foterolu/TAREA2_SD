@@ -7,7 +7,12 @@ service ChunksUpload {
         rpc Propuesta(Prop) returns (Accept){}
         rpc SendChunk(stream Chunk) returns (UploadStatus) {}
         rpc SendLog(Log) returns (Accept){}
+        rpc RequestAdress(Prop) returns(Adress) {}
         
+}
+
+message Adress{
+        repeated string Adress = 1;
 }
 
 message Log {
