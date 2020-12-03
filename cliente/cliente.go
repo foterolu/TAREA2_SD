@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"io/util"
+	"io/ioutil"
 
 	protos "../protos"
 	"google.golang.org/grpc"
