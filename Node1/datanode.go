@@ -130,7 +130,7 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 	aceptacion := &protos.Accept{
 		Flag: true}
-	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(1*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(25*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 	if err != nil {
 		aceptacion.Flag = false
@@ -203,7 +203,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 
 		client2 := protos.NewChunksUploadClient(conn2)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 		defer cancel()
 		fmt.Printf("Conectó: %v \n", dirs)
 		add := &protos.Adress{
@@ -226,7 +226,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 
 		client := protos.NewChunksUploadClient(conn)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 		defer cancel()
 
 		if dirs[i%size] == node1 {

@@ -143,7 +143,7 @@ func (s *NameNodeServer) PropuestaCentralizada(ctx context.Context, propuesta *p
 
 	for i := 0; i < len(direcciones); i++ {
 
-		conn, err := grpc.Dial(direcciones[i], grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(1*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+		conn, err := grpc.Dial(direcciones[i], grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(25*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err == nil {
 			defer conn.Close()
