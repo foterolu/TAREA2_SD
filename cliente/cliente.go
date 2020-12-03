@@ -87,7 +87,7 @@ func main() {
 		fmt.Printf("Splitting to %d pieces.\n", totalPartsNum)
 		//ctx := context.Background()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 		defer cancel()
 
 		stream, err := client.UploadChunk(ctx)
