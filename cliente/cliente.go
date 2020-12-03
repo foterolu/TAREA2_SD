@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -41,6 +42,13 @@ type DataNodeServer struct {
 func main() {
 	flag.Parse()
 	if *cliente == "uploader" {
+		fileInfo, err := ioutil.ReadDir(root)
+   		if err != nil {
+       			 return files, err
+    			}
+		cantidadLibros := len(fileInfo)
+		numeroRandom := rand.Intn(cantidadLibros)
+		
 		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err != nil {
@@ -51,7 +59,7 @@ func main() {
 
 		client := protos.NewChunksUploadClient(conn)
 
-		fmt.Printf("nombre del libro %v\n", *libro)
+		fmt.Printf("nombre del libro %v\n", fileInfo[numeroRandom])
 
 		fileToBeChunked := "./upload/" + *libro + ".pdf" // change here!
 
