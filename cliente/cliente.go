@@ -47,7 +47,7 @@ func main() {
    		if err != nil {
 			panic(err)
     			}
-		fmt.Printf("%v\n", directorio.Name()) 
+		fmt.Printf("%v\n", directorio[0].Name()) 
 		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
 		
