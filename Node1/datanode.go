@@ -20,10 +20,11 @@ import (
 )
 
 const (
-	node3    = "10.10.28.47:4040"
-	node1    = "10.10.28.45:4040"
-	node2    = "10.10.28.46:4040"
-	namenode = "10.10.28.48:4040"
+	node3     = "10.10.28.47:4040"
+	node1     = "10.10.28.45:4040"
+	node2     = "10.10.28.46:4040"
+	namenode  = "10.10.28.48:4040"
+	directory = "/home/sd/TAREA2_SD/Node1/"
 )
 
 var (
@@ -142,7 +143,7 @@ func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (
 
 	}
 
-	ioutil.WriteFile("./"+res.Name, res.Content, os.ModeAppend)
+	ioutil.WriteFile(directory+res.Name, res.Content, os.ModeAppend)
 
 	return err
 }
@@ -251,7 +252,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 		defer cancel()
 
 		if dirs[i%size] == node1 {
-			ioutil.WriteFile("./"+s.name[i], s.data[i], os.ModeAppend)
+			ioutil.WriteFile(directory+s.name[i], s.data[i], os.ModeAppend)
 			reporte := (&protos.Log{
 				NombreLibro:    s.chunk[i].Libro,
 				CantidadPartes: strconv.FormatInt(int64(s.chunk[i].Partes), 10),
