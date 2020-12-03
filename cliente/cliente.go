@@ -42,7 +42,7 @@ type DataNodeServer struct {
 func main() {
 	flag.Parse()
 	if *cliente == "uploader" {
-		fileInfo, err := ioutil.ReadDir(root)
+		fileInfo, err := ioutil.ReadDir("/upload")
    		if err != nil {
        			 return files, err
     			}
