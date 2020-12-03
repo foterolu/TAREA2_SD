@@ -45,9 +45,9 @@ func main() {
 	if *cliente == "uploader" {
 		directorio, err := ioutil.ReadDir("/upload")
    		if err != nil {
-       			 return directorio, err
+			panic(err)
     			}
-		cantidadLibros := len(fileInfo)
+		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
 		
 		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
@@ -60,7 +60,7 @@ func main() {
 
 		client := protos.NewChunksUploadClient(conn)
 
-		fmt.Printf("nombre del libro %v\n", fileInfo[numeroRandom])
+		fmt.Printf("nombre del libro %v\n", directorio[numeroRandom])
 
 		fileToBeChunked := "./upload/" + *libro + ".pdf" // change here!
 
