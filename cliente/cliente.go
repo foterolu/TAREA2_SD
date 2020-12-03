@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"math/rand"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"io/ioutil"
 
 	protos "../protos"
 	"google.golang.org/grpc"
@@ -20,9 +20,9 @@ import (
 
 const (
 	node3    = "10.10.28.47:8080"
-	node1    = "10.10.28.45:8080"
+	node1    = "10.10.28.45:50051"
 	node2    = "10.10.28.46:8080"
-	namenode = "10.10.28.48:8080"
+	namenode = "10.10.28.48:9090"
 )
 
 var (
@@ -44,13 +44,13 @@ func main() {
 	flag.Parse()
 	if *cliente == "uploader" {
 		directorio, err := ioutil.ReadDir("./upload")
-   		if err != nil {
+		if err != nil {
 			panic(err)
-    			}
-		fmt.Printf("%v\n", directorio[0].Name()) 
+		}
+		fmt.Printf("%v\n", directorio[0].Name())
 		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
-		
+
 		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(25*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err != nil {
