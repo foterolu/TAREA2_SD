@@ -9,8 +9,10 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	protos "../protos"
@@ -25,8 +27,9 @@ const (
 )
 
 var (
-	sistema = flag.String("sistema", "", "tipo sistema")
-	mu      sync.RWMutex
+	sistema  = flag.String("sistema", "", "tipo sistema")
+	mu       sync.RWMutex
+	contador int
 )
 
 type DataNodeServer struct {
@@ -43,6 +46,7 @@ func remove(slice []string, s int) []string {
 
 func main() {
 	flag.Parse()
+	contador = 0
 	listener, err := net.Listen("tcp", node1)
 	if err != nil {
 		panic(err)
@@ -56,14 +60,30 @@ func main() {
 	protos.RegisterChunksUploadServer(grpcServer, s)
 	fmt.Printf("escuchando\n")
 	grpcServer.Serve(listener)
-
-	fmt.Printf("escuchando\n")
-
 	defer grpcServer.Stop()
+
+	forever := make(chan bool)
+	go func() {
+
+	}()
+	<-forever
+
+}
+
+func SetupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("\r- Ctrl+C pressed in Terminal")
+		fmt.Printf("Cantidad de mensajes :  %v", contador)
+		os.Exit(0)
+	}()
+
 }
 
 func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServer) (err error) {
-
+	contador++
 	mu.Lock()
 	for {
 		res, err := stream.Recv()
@@ -99,7 +119,7 @@ func (s *DataNodeServer) UploadChunk(stream protos.ChunksUpload_UploadChunkServe
 }
 
 func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (err error) {
-
+	contador++
 	res, err := stream.Recv()
 	if err == io.EOF {
 		err = stream.SendAndClose(&protos.UploadStatus{
@@ -127,7 +147,7 @@ func (s *DataNodeServer) SendChunk(stream protos.ChunksUpload_SendChunkServer) (
 }
 
 func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) (*protos.Accept, error) { //recibe una ip a confirmar
-
+	contador++
 	aceptacion := &protos.Accept{
 		Flag: true}
 	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
@@ -203,7 +223,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 
 		client2 := protos.NewChunksUploadClient(conn2)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		fmt.Printf("Conectó: %v \n", dirs)
 		add := &protos.Adress{
@@ -226,7 +246,7 @@ func repartir(dirs []string, s *DataNodeServer) {
 
 		client := protos.NewChunksUploadClient(conn)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		if dirs[i%size] == node1 {
