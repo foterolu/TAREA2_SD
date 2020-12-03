@@ -47,7 +47,7 @@ func main() {
    		if err != nil {
 			panic(err)
     			}
-		fmt.Printf("%v\n", directorio) 
+		fmt.Printf("%v\n", directorio.Name()) 
 		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
 		
@@ -61,9 +61,9 @@ func main() {
 
 		client := protos.NewChunksUploadClient(conn)
 
-		fmt.Printf("nombre del libro %v\n", directorio[numeroRandom])
+		fmt.Printf("nombre del libro %v\n", directorio[numeroRandom].Name())
 
-		fileToBeChunked := "./upload/" + directorio[numeroRandom] + ".pdf" // change here!
+		fileToBeChunked := "./upload/" + directorio[numeroRandom].Name() + ".pdf" // change here!
 
 		file, err := os.Open(fileToBeChunked)
 
