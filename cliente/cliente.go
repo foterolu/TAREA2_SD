@@ -51,7 +51,7 @@ func main() {
 		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
 
-		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(25*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+		conn, err := grpc.Dial(node1, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 		if err != nil {
 			fmt.Printf("ERRROOOOOOR\n")

@@ -128,7 +128,7 @@ func (s *DataNodeServer) Propuesta(ctx context.Context, direccion *protos.Prop) 
 
 	aceptacion := &protos.Accept{
 		Flag: true}
-	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(25*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
+	conn, err := grpc.Dial(direccion.Node, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(10*time.Second)) //deberia conectarse a cualquiera de los 3 nodeos
 
 	if err != nil {
 		aceptacion.Flag = false
