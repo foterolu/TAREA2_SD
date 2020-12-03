@@ -42,6 +42,7 @@ type DataNodeServer struct {
 
 func main() {
 	flag.Parse()
+
 	if *cliente == "uploader" {
 		directorio, err := ioutil.ReadDir("./upload")
 		if err != nil {
@@ -60,10 +61,10 @@ func main() {
 		defer conn.Close()
 
 		client := protos.NewChunksUploadClient(conn)
+		*libro = strings.Split(directorio[numeroRandom].Name(), ".")[0]
+		fmt.Printf("nombre del libro %v\n", *libro)
 
-		fmt.Printf("nombre del libro %v\n", directorio[numeroRandom].Name())
-
-		fileToBeChunked := "./upload/" + directorio[numeroRandom].Name() // change here!
+		fileToBeChunked := "./upload/" + *libro + ".pdf" // change here!
 
 		file, err := os.Open(fileToBeChunked)
 
