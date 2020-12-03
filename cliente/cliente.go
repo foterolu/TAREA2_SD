@@ -47,6 +47,7 @@ func main() {
    		if err != nil {
 			panic(err)
     			}
+		fmt.Printf("%v\n", directorio) 
 		cantidadLibros := len(directorio)
 		numeroRandom := rand.Intn(cantidadLibros)
 		
@@ -62,7 +63,7 @@ func main() {
 
 		fmt.Printf("nombre del libro %v\n", directorio[numeroRandom])
 
-		fileToBeChunked := "./upload/" + *libro + ".pdf" // change here!
+		fileToBeChunked := "./upload/" + directorio[numeroRandom] + ".pdf" // change here!
 
 		file, err := os.Open(fileToBeChunked)
 
