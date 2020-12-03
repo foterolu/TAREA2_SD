@@ -64,6 +64,7 @@ func main() {
 
 	forever := make(chan bool)
 	go func() {
+		SetupCloseHandler()
 
 	}()
 	<-forever
