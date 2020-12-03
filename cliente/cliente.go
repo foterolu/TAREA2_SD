@@ -43,9 +43,9 @@ type DataNodeServer struct {
 func main() {
 	flag.Parse()
 	if *cliente == "uploader" {
-		fileInfo, err := ioutil.ReadDir("/upload")
+		directorio, err := ioutil.ReadDir("/upload")
    		if err != nil {
-       			 return files, err
+       			 return directorio, err
     			}
 		cantidadLibros := len(fileInfo)
 		numeroRandom := rand.Intn(cantidadLibros)
